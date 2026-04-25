@@ -1,0 +1,63 @@
+.topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 52px;
+  background: rgba(28, 27, 25, 0.95);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  gap: 1.5rem;
+  z-index: 200;
+}
+
+.logo {
+  font-family: var(--ff-head);
+  font-style: italic;
+  font-size: 1.2rem;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.logo span { color: var(--accent); }
+
+.sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+}
+
+.title {
+  font-family: var(--ff-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.right a {
+  font-family: var(--ff-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+
+.right a:hover { color: var(--text); }
+
+.badge {
+  font-family: var(--ff-mono);
+  font-size: 0.68rem;
+  color: var(--accent);
+  border: 1px solid rgba(217, 119, 54, 0.3);
+  padding: 0.2rem 0.55rem;
+}

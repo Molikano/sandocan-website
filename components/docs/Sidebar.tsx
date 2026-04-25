@@ -8,6 +8,7 @@ export type SectionId =
   | 'datasets' | 'training'
   | 'persistence' | 'inference'
   | 'performance' | 'examples' | 'accuracy'
+  | 'mmap' | 'parallel'
 
 interface Group {
   label: string
@@ -45,6 +46,13 @@ const groups: Group[] = [
     items: [
       { id: 'persistence', label: 'Model Persistence' },
       { id: 'inference',   label: 'Inference' },
+    ],
+  },
+  {
+    label: 'Internals',
+    items: [
+      { id: 'mmap',     label: 'Memory Mapping' },
+      { id: 'parallel', label: 'Batch Parallelism' },
     ],
   },
   {

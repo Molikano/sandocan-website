@@ -8,6 +8,7 @@ import {
   SectionDatasets, SectionTraining,
   SectionPersistence, SectionInference,
   SectionPerformance, SectionExamples, SectionAccuracy,
+  SectionMmap, SectionParallel,
 } from './sections'
 import styles from './DocsClient.module.css'
 
@@ -27,6 +28,8 @@ const sectionMap: Record<SectionId, React.FC> = {
   performance: SectionPerformance,
   examples:    SectionExamples,
   accuracy:    SectionAccuracy,
+  mmap:        SectionMmap,
+  parallel:    SectionParallel,
 }
 
 export default function DocsClient() {

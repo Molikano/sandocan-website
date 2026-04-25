@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import styles from './sections.module.css'
+import DiagramMmap from './DiagramMmap'
+import DiagramParallel from './DiagramParallel'
 
 /* ── shared primitives ── */
 
@@ -670,6 +672,109 @@ export function SectionAccuracy() {
           ['Fashion MNIST',  '784 → 64 → 64 → 10',           'SGD',             '~85% (converges)'],
         ]}
       />
+    </>
+  )
+}
+
+/* ── MMAP ── */
+export function SectionMmap() {
+  return (
+    <>
+      <div className={styles.header}>
+        <Eyebrow>Internals</Eyebrow>
+        <DocH1>Memory-Mapped <em>Datasets</em></DocH1>
+        <p className={styles.headerDesc}>
+          <InlineCode>ImageDataset</InlineCode> maps the raw IDX file into virtual memory with{' '}
+          <InlineCode>mmap()</InlineCode>. RSS stays bounded regardless of dataset size.
+        </p>
+      </div>
+
+      <DocP>
+        When you call <InlineCode>load_emnist_letters()</InlineCode> or{' '}
+        <InlineCode>load_fashion_mnist()</InlineCode>, Sandokan opens the IDX file and maps it
+        into the process&apos;s virtual address space. No data is copied into RAM at that point —
+        the mapping is a promise: any virtual address in the range that gets read will be backed
+        by the corresponding bytes from the file.
+      </DocP>
+
+      <DocP>
+        Accessing <InlineCode>image[i]</InlineCode> via <InlineCode>operator[]</InlineCode>{' '}
+        computes the byte offset for sample <em>i</em> and reads from that virtual address. If
+        the page holding that sample has not been accessed before, the CPU raises a page fault,
+        the OS loads the 4 KB page from disk, and execution continues transparently. Only pages
+        you actually touch ever enter physical RAM.
+      </DocP>
+
+      <DocH2>Why this matters</DocH2>
+
+      <DocP>
+        The full EMNIST Letters dataset is roughly 47 MB on disk. A typical mini-batch of 128
+        samples spans a small number of 4 KB pages. After a few epochs, the frequently accessed
+        pages converge and the OS keeps them resident. The effective RSS is a fraction of the
+        total dataset size — bounded by the working set of pages touched in one epoch, not by
+        the file size.
+      </DocP>
+
+      <Callout>
+        <strong>The kernel manages caching.</strong> When free RAM is needed elsewhere, the OS
+        can evict clean mmap pages at zero cost — they can always be re-faulted from the
+        original file. No explicit cache management is needed in application code.
+      </Callout>
+
+      <DocH2>Diagram</DocH2>
+      <DiagramMmap />
+    </>
+  )
+}
+
+/* ── PARALLEL ── */
+export function SectionParallel() {
+  return (
+    <>
+      <div className={styles.header}>
+        <Eyebrow>Internals</Eyebrow>
+        <DocH1>Batch <em>Parallelism</em></DocH1>
+        <p className={styles.headerDesc}>
+          128 samples. One matrix multiply. Apple AMX tiles handle the rest.
+        </p>
+      </div>
+
+      <DocP>
+        In single-sample mode, each training step calls <InlineCode>forward()</InlineCode> once
+        per sample — 128 separate matrix-vector products per layer. Batched mode reshapes this
+        into a single matrix-matrix product (GEMM): <InlineCode>[128×784] · [784×64]</InlineCode>{' '}
+        at once. A single GEMM is far more efficient than 128 matrix-vector multiplies because
+        it amortises loop overhead, maximises cache reuse, and exposes parallelism across all
+        output rows simultaneously.
+      </DocP>
+
+      <DocP>
+        When <InlineCode>EIGEN_USE_BLAS</InlineCode> is set and Accelerate is linked, Eigen
+        routes all GEMM calls through Apple&apos;s Accelerate BLAS, which dispatches to the AMX
+        co-processor built into Apple Silicon. AMX divides the output matrix into fixed-size tiles
+        and processes multiple tiles concurrently using dedicated multiply-accumulate hardware. The
+        host CPU submits work to AMX and is free to progress while tiles compute in parallel.
+      </DocP>
+
+      <DocH2>PMAD Slab role</DocH2>
+
+      <DocP>
+        The PMAD allocator ensures the backward pass is equally fast. All gradient buffers —
+        weight gradients and bias gradients for every layer — are pre-allocated in a single
+        contiguous slab before training begins. During backward, no <InlineCode>malloc()</InlineCode>{' '}
+        or <InlineCode>free()</InlineCode> is called; gradient writes go directly to known,
+        fixed addresses in the slab. Combined with batched GEMM, this eliminates all dynamic
+        allocation from the hot training path.
+      </DocP>
+
+      <Callout green>
+        <strong>Result:</strong> Sandokan&apos;s batched path reaches 1.6 M samples/sec on
+        EMNIST Letters (Apple M-series) — <strong>19.5× faster than single-sample</strong> and{' '}
+        <strong>1.5× faster than plain Eigen batched</strong>.
+      </Callout>
+
+      <DocH2>Diagram</DocH2>
+      <DiagramParallel />
     </>
   )
 }

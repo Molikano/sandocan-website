@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandokan — C++ Neural Network Training Engine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg:          #1C1B19;
+            --surface:     #2B2926;
+            --surface-2:   #36332F;
+            --text:        #E6E1D6;
+            --muted:       #8C877D;
+            --accent:      #D97736;
+            --accent-h:    #E88849;
+            --border:      #3E3B36;
+            --green:       #A3B68A;
+            --gold:        #D4B07B;
+
+            --ff-head: 'Fraunces', serif;
+            --ff-body: 'Cabinet Grotesk', sans-serif;
+            --ff-mono: 'Berkeley Mono', 'JetBrains Mono', monospace;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--ff-body);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* ── NAV ─────────────────────────────────────────── */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 3rem;
+            border-bottom: 1px solid transparent;
+            background: transparent;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        nav.scrolled {
+            background: rgba(28, 27, 25, 0.92);
+            border-color: var(--border);
+            backdrop-filter: blur(12px);
+        }
+        .nav-logo {
+            font-family: var(--ff-head);
+            font-style: italic;
+            font-size: 1.4rem;
+            color: var(--text);
+            text-decoration: none;
+            letter-spacing: -0.01em;
+        }
+        .nav-logo span { color: var(--accent); }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+            list-style: none;
+        }
+        .nav-links a {
+            font-family: var(--ff-mono);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--text); }
+        .nav-links .cta {
+            color: var(--accent);
+            border: 1px solid var(--border);
+            padding: 0.45rem 1rem;
+            transition: background 0.2s, color 0.2s;
+        }
+        .nav-links .cta:hover { background: var(--accent); color: var(--bg); }
+
+        /* ── HERO ─────────────────────────────────────────── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8rem 2rem 5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* subtle grid texture */
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 60px 60px;
+            opacity: 0.18;
+            mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 30%, transparent 100%);
+        }
+
+        .hero-eyebrow {
+            font-family: var(--ff-mono);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            animation: fadeUp 0.6s 0.2s forwards;
+        }
+
+        h1 {
+            font-family: var(--ff-head);
+            font-weight: 300;
+            font-size: clamp(3rem, 7vw, 6.5rem);
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            color: var(--text);
+            margin-bottom: 1.5rem;
+            max-width: 15ch;
+            opacity: 0;
+            animation: fadeUp 0.7s 0.35s forwards;
+        }
+        h1 em {
+            font-style: italic;
+            color: var(--accent);
+        }
+
+        .hero-sub {
+            font-size: 1.15rem;
+            color: var(--muted);
+            max-width: 52ch;
+            margin-bottom: 3rem;
+            line-height: 1.7;
+            opacity: 0;
+            animation: fadeUp 0.7s 0.5s forwards;
+        }
+
+        .hero-badges {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 3.5rem;
+            opacity: 0;
+            animation: fadeUp 0.7s 0.6s forwards;
+        }
+        .badge {
+            font-family: var(--ff-mono);
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            padding: 0.35rem 0.85rem;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            background: var(--surface);
+        }
+        .badge.highlight { border-color: var(--accent); color: var(--accent); }
+
+        .hero-ctas {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 4.5rem;
+            opacity: 0;
+            animation: fadeUp 0.7s 0.7s forwards;
+        }
+        .btn-primary {
+            font-family: var(--ff-mono);
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 0.85rem 2rem;
+            background: var(--accent);
+            color: var(--bg);
+            text-decoration: none;
+            border: 1px solid var(--accent);
+            transition: background 0.2s, transform 0.15s;
+            cursor: pointer;
+        }
+        .btn-primary:hover { background: var(--accent-h); transform: translateY(-1px); }
+        .btn-ghost {
+            font-family: var(--ff-mono);
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 0.85rem 2rem;
+            background: transparent;
+            color: var(--text);
+            text-decoration: none;
+            border: 1px solid var(--border);
+            transition: border-color 0.2s, transform 0.15s;
+            cursor: pointer;
+        }
+        .btn-ghost:hover { border-color: var(--text); transform: translateY(-1px); }
+
+        /* ── TERMINAL ─────────────────────────────────────── */
+        .terminal-wrap {
+            opacity: 0;
+            animation: fadeUp 0.8s 0.9s forwards;
+            width: 100%;
+            max-width: 660px;
+        }
+
+        .terminal {
+            background: #141311;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 1px rgba(0,0,0,0.4),
+                0 24px 60px rgba(0,0,0,0.55),
+                0 0 80px rgba(217,119,54,0.06);
+            text-align: left;
+        }
+
+        .terminal-bar {
+            background: #1e1c1a;
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .dot {
+            width: 12px; height: 12px;
+            border-radius: 50%;
+        }
+        .dot-red   { background: #FF5F57; }
+        .dot-yel   { background: #FFBD2E; }
+        .dot-grn   { background: #28C840; }
+        .terminal-title {
+            font-family: var(--ff-mono);
+            font-size: 0.72rem;
+            color: var(--muted);
+            margin-left: auto;
+            margin-right: auto;
+            transform: translateX(-18px);
+        }
+
+        .terminal-body {
+            padding: 1.5rem 1.75rem 2rem;
+            font-family: var(--ff-mono);
+            font-size: 0.88rem;
+            line-height: 1.75;
+            min-height: 220px;
+        }
+
+        .t-line { display: flex; align-items: flex-start; gap: 0.5rem; white-space: pre-wrap; }
+        .t-prompt { color: var(--accent); flex-shrink: 0; }
+        .t-cmd    { color: var(--text); }
+        .t-out    { color: var(--muted); padding-left: 1.2rem; }
+        .t-ok     { color: var(--green); padding-left: 1.2rem; }
+        .t-hi     { color: var(--accent); }
+        .t-gold   { color: var(--gold); }
+        .cursor {
+            display: inline-block;
+            width: 8px; height: 1em;
+            background: var(--accent);
+            vertical-align: text-bottom;
+            animation: blink 1s step-end infinite;
+            margin-left: 1px;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* ── STATS BAR ────────────────────────────────────── */
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            padding: 2.5rem 3rem;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            flex: 1;
+            min-width: 160px;
+            text-align: center;
+            padding: 1rem 2rem;
+            position: relative;
+        }
+        .stat-item + .stat-item::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 20%; bottom: 20%;
+            width: 1px;
+            background: var(--border);
+        }
+        .stat-num {
+            font-family: var(--ff-head);
+            font-size: 2.8rem;
+            font-weight: 300;
+            color: var(--text);
+            letter-spacing: -0.03em;
+            line-height: 1;
+            margin-bottom: 0.4rem;
+        }
+        .stat-num span { color: var(--accent); }
+        .stat-label {
+            font-family: var(--ff-mono);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+        }
+
+        /* ── SECTION COMMON ───────────────────────────────── */
+        section { padding: 6rem 2rem; }
+        .inner { max-width: 1000px; margin: 0 auto; }
+        .inner-narrow { max-width: 720px; margin: 0 auto; }
+
+        .section-label {
+            font-family: var(--ff-mono);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: var(--accent);
+            margin-bottom: 1.2rem;
+            display: block;
+        }
+        h2 {
+            font-family: var(--ff-head);
+            font-weight: 300;
+            font-size: clamp(2rem, 4vw, 3rem);
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            margin-bottom: 1.25rem;
+            color: var(--text);
+        }
+        h2 em { font-style: italic; color: var(--accent); }
+        .section-desc {
+            font-size: 1.05rem;
+            color: var(--muted);
+            line-height: 1.75;
+            max-width: 58ch;
+            margin-bottom: 3rem;
+        }
+
+        /* ── FEATURES GRID ────────────────────────────────── */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+        }
+        .feat-card {
+            background: var(--surface);
+            padding: 2rem 1.75rem;
+            transition: background 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .feat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 2px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s;
+        }
+        .feat-card:hover { background: var(--surface-2); }
+        .feat-card:hover::after { transform: scaleX(1); }
+        .feat-icon {
+            font-family: var(--ff-mono);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            border: 1px solid var(--border);
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            margin-bottom: 1.25rem;
+        }
+        .feat-card h3 {
+            font-family: var(--ff-head);
+            font-weight: 400;
+            font-size: 1.3rem;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.01em;
+        }
+        .feat-card p {
+            font-size: 0.95rem;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        /* ── CODE SHOWCASE ────────────────────────────────── */
+        #example { background: var(--surface); }
+        .code-showcase {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+        .code-desc h3 {
+            font-family: var(--ff-head);
+            font-weight: 300;
+            font-size: 1.6rem;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.015em;
+        }
+        .code-desc p {
+            font-size: 1rem;
+            color: var(--muted);
+            line-height: 1.7;
+            margin-bottom: 1rem;
+        }
+        .code-desc ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .code-desc li {
+            font-family: var(--ff-mono);
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .code-desc li::before {
+            content: '→';
+            color: var(--accent);
+        }
+        pre.showcase {
+            background: #141311;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1.75rem;
+            overflow-x: auto;
+            font-family: var(--ff-mono);
+            font-size: 0.84rem;
+            line-height: 1.75;
+            color: var(--text);
+        }
+        .kw  { color: var(--accent); }
+        .str { color: var(--green); }
+        .cmt { color: var(--muted); font-style: italic; }
+        .fn  { color: var(--gold); }
+        .tp  { color: #B8A9D4; }
+
+        /* ── PERF TABLE ───────────────────────────────────── */
+        .perf-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--ff-mono);
+            font-size: 0.84rem;
+            margin-top: 2rem;
+        }
+        .perf-table th {
+            text-align: left;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+        }
+        .perf-table td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid rgba(62,59,54,0.5);
+            color: var(--text);
+        }
+        .perf-table tr.winner td { background: rgba(217,119,54,0.06); }
+        .perf-table tr.winner td:first-child { color: var(--accent); }
+        .badge-winner {
+            display: inline-block;
+            background: var(--accent);
+            color: var(--bg);
+            font-size: 0.65rem;
+            padding: 0.1rem 0.4rem;
+            letter-spacing: 0.06em;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+
+        /* ── INSTALL ──────────────────────────────────────── */
+        #install { background: #141311; }
+        .install-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+        .install-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            counter-reset: step;
+        }
+        .step {
+            display: flex;
+            gap: 1.25rem;
+            align-items: flex-start;
+        }
+        .step-num {
+            counter-increment: step;
+            flex-shrink: 0;
+            width: 28px; height: 28px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--ff-mono);
+            font-size: 0.72rem;
+            color: var(--muted);
+            margin-top: 0.1rem;
+        }
+        .step-content h4 {
+            font-family: var(--ff-body);
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.3rem;
+            color: var(--text);
+        }
+        .step-content p {
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+        .inline-code {
+            font-family: var(--ff-mono);
+            font-size: 0.8rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 0.15rem 0.45rem;
+            color: var(--accent);
+        }
+
+        pre.install-block {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1.5rem 1.75rem;
+            font-family: var(--ff-mono);
+            font-size: 0.84rem;
+            line-height: 1.9;
+            color: var(--text);
+            overflow-x: auto;
+        }
+        pre.install-block .cmt { color: var(--muted); font-style: italic; }
+        pre.install-block .kw  { color: var(--accent); }
+
+        /* ── FOOTER ───────────────────────────────────────── */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+        .footer-logo {
+            font-family: var(--ff-head);
+            font-style: italic;
+            font-size: 1.25rem;
+            color: var(--muted);
+        }
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        .footer-links a {
+            font-family: var(--ff-mono);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover { color: var(--text); }
+        .footer-copy {
+            font-family: var(--ff-mono);
+            font-size: 0.72rem;
+            color: #4a4742;
+            width: 100%;
+        }
+
+        /* ── ANIMATIONS ───────────────────────────────────── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.7s, transform 0.7s;
+        }
+        .reveal.visible { opacity: 1; transform: none; }
+
+        @media (max-width: 768px) {
+            nav { padding: 1rem 1.5rem; }
+            .nav-links { display: none; }
+            .features-grid { grid-template-columns: 1fr; }
+            .code-showcase { grid-template-columns: 1fr; }
+            .install-grid { grid-template-columns: 1fr; }
+            .stat-item + .stat-item::before { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+    <a href="index.html" class="nav-logo">Sandokan<span>.</span></a>
+    <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#example">Example</a></li>
+        <li><a href="#performance">Performance</a></li>
+        <li><a href="#install">Install</a></li>
+        <li><a href="docs.html" class="cta">Documentation →</a></li>
+    </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+
+    <h1>Neural networks at <em>native</em> C++ speed.</h1>
+    <p class="hero-sub">No Python. No PyTorch dependency. Drop a single header and get a complete training pipeline — backed by a custom slab allocator and Apple AMX acceleration.</p>
+
+    <div class="hero-badges">
+        <span class="badge highlight">Zero Allocation</span>
+        <span class="badge">C++17</span>
+        <span class="badge">Apple AMX</span>
+        <span class="badge">CMake ≥ 3.15</span>
+        <span class="badge">Eigen 3</span>
+        <span class="badge">Single Header</span>
+    </div>
+
+    <div class="hero-ctas">
+        <a href="docs.html" class="btn-primary">Read the Docs</a>
+        <a href="#install" class="btn-ghost">Quick Install</a>
+    </div>
+
+    <!-- TERMINAL -->
+    <div class="terminal-wrap">
+        <div class="terminal" id="terminal">
+            <div class="terminal-bar">
+                <div class="dot dot-red"></div>
+                <div class="dot dot-yel"></div>
+                <div class="dot dot-grn"></div>
+                <span class="terminal-title">bash — 80×24</span>
+            </div>
+            <div class="terminal-body" id="terminal-body">
+                <!-- lines injected by JS -->
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+    <div class="stat-item reveal">
+        <div class="stat-num">1.6<span>M</span></div>
+        <div class="stat-label">Samples / sec</div>
+    </div>
+    <div class="stat-item reveal">
+        <div class="stat-num">19<span>×</span></div>
+        <div class="stat-label">Faster than single-sample</div>
+    </div>
+    <div class="stat-item reveal">
+        <div class="stat-num">88<span>%</span></div>
+        <div class="stat-label">EMNIST test accuracy</div>
+    </div>
+    <div class="stat-item reveal">
+        <div class="stat-num">0</div>
+        <div class="stat-label">malloc in hot path</div>
+    </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+    <div class="inner">
+        <span class="section-label reveal">Core Principles</span>
+        <h2 class="reveal">Engineered with <em>intention.</em></h2>
+        <p class="section-desc reveal">Every design decision in Sandokan traces back to a single constraint: training must be fast, deterministic, and portable — without dragging in a Python runtime.</p>
+
+        <div class="features-grid reveal">
+            <div class="feat-card">
+                <span class="feat-icon">Memory</span>
+                <h3>PMAD Slab Allocator</h3>
+                <p>All gradient buffers are served from a pre-allocated contiguous slab. Zero malloc / free during training. No heap fragmentation over long runs.</p>
+            </div>
+            <div class="feat-card">
+                <span class="feat-icon">Compute</span>
+                <h3>Apple AMX Acceleration</h3>
+                <p>Batched GEMM via Apple Accelerate and AMX co-processors. Combined with the slab allocator, this is the engine's primary performance lever.</p>
+            </div>
+            <div class="feat-card">
+                <span class="feat-icon">API</span>
+                <h3>PyTorch-style Modules</h3>
+                <p>Compose typed submodules with <code>Submodule&lt;T&gt;</code>. Auto-registers with the parent on construction — you cannot forget a register call.</p>
+            </div>
+            <div class="feat-card">
+                <span class="feat-icon">Data</span>
+                <h3>mmap-backed Datasets</h3>
+                <p>ImageDataset pages images on demand — RSS stays bounded regardless of dataset size. TabularDataset handles numeric CSVs with column-major storage.</p>
+            </div>
+            <div class="feat-card">
+                <span class="feat-icon">Training</span>
+                <h3>Optimizers & Schedulers</h3>
+                <p>SGD, Adam, and LinearLR schedulers out of the box. Training loops handle shuffling, partial-batch skipping, and scheduler stepping automatically.</p>
+            </div>
+            <div class="feat-card">
+                <span class="feat-icon">Persist</span>
+                <h3>Custom .sand Format</h3>
+                <p>Compact binary model files with a 4-word header, optional normalisation block, and DFS-traversal weight layout. Load in one call.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CODE EXAMPLE -->
+<section id="example">
+    <div class="inner">
+        <span class="section-label reveal">Module System</span>
+        <h2 class="reveal">Define networks by <em>composing.</em></h2>
+
+        <div class="code-showcase">
+            <div class="code-desc reveal">
+                <h3>Residual blocks. First class.</h3>
+                <p>Networks are plain C++ structs inheriting from <code>Module</code>. Submodules auto-register — the topology is known at construction time, so the slab allocator can compute sizes before any data moves.</p>
+                <ul>
+                    <li>Auto-registration on construction</li>
+                    <li>Residual connections via operator overloads</li>
+                    <li>Topology-derived slab sizing via <code>init_pmad_for()</code></li>
+                    <li>Forward and backward in pure C++</li>
+                </ul>
+            </div>
+            <pre class="showcase reveal"><code><span class="kw">struct</span> <span class="tp">ResBlock</span> : <span class="tp">Module</span> {
+    <span class="tp">Submodule</span>&lt;<span class="tp">Linear</span>&gt; fc1 { *<span class="kw">this</span>, 64, 64 };
+    <span class="tp">ReLU</span>              relu1;
+    <span class="tp">Submodule</span>&lt;<span class="tp">Linear</span>&gt; fc2 { *<span class="kw">this</span>, 64, 64 };
+    <span class="tp">ReLU</span>              relu2;
+
+    <span class="tp">MatrixXf</span> <span class="fn">forward</span>(<span class="kw">const</span> <span class="tp">MatrixXf</span>&amp; x) <span class="kw">override</span> {
+        <span class="kw">return</span> relu2.<span class="fn">forward</span>(
+            fc2.<span class="fn">forward</span>(
+                relu1.<span class="fn">forward</span>(fc1.<span class="fn">forward</span>(x))
+            )
+        ) + x; <span class="cmt">// residual skip</span>
+    }
+};
+
+<span class="cmt">// One call allocates the entire gradient slab</span>
+<span class="tp">LetterNet</span> net;
+<span class="fn">init_pmad_for</span>(net);
+
+<span class="tp">Adam</span>     optim(1e-3f);
+<span class="tp">LinearLR</span> sched(optim, 150, 1e-5f);
+<span class="fn">train_module</span>(net, sched, train, test, 150, 128);</code></pre>
+        </div>
+    </div>
+</section>
+
+<!-- PERFORMANCE -->
+<section id="performance">
+    <div class="inner">
+        <span class="section-label reveal">Benchmarks</span>
+        <h2 class="reveal">Numbers that <em>matter.</em></h2>
+        <p class="section-desc reveal">Apple Silicon (M-series) · EIGEN_USE_BLAS · Architecture 784→64→64→26 · batch=128 · EMNIST Letters, 124 800 training samples.</p>
+
+        <table class="perf-table reveal">
+            <thead>
+                <tr>
+                    <th>Backend</th>
+                    <th>Total (ms)</th>
+                    <th>ms / epoch</th>
+                    <th>ms / sample</th>
+                    <th>Samples / sec</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Eigen single-sample</td>
+                    <td>9 257</td>
+                    <td>1 851</td>
+                    <td>0.0148</td>
+                    <td>67 408</td>
+                </tr>
+                <tr>
+                    <td>Sandokan single-sample</td>
+                    <td>7 540</td>
+                    <td>1 508</td>
+                    <td>0.0121</td>
+                    <td>82 757</td>
+                </tr>
+                <tr>
+                    <td>Eigen batched</td>
+                    <td>614</td>
+                    <td>123</td>
+                    <td>0.0010</td>
+                    <td>1 015 951</td>
+                </tr>
+                <tr class="winner">
+                    <td>Sandokan batched + parallel <span class="badge-winner">FASTEST</span></td>
+                    <td>386</td>
+                    <td>77</td>
+                    <td>0.0006</td>
+                    <td>1 615 666</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="reveal" style="margin-top:2rem; padding:1.5rem; background:var(--surface); border:1px solid var(--border); border-left: 3px solid var(--accent);">
+            <p style="font-family:var(--ff-mono);font-size:0.82rem;color:var(--muted);margin:0;">
+                Sandokan's batched path runs at <span style="color:var(--accent)">1.6 M samples/sec</span> — 
+                19.5× faster than single-sample Sandokan and 1.5× faster than plain Eigen batched. 
+                Fashion MNIST shows a further <span style="color:var(--accent)">1.74 M samples/sec</span> at 34.4 ms/epoch.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- INSTALL -->
+<section id="install">
+    <div class="inner">
+        <span class="section-label reveal">Get Started</span>
+        <h2 class="reveal">Up and running in <em>minutes.</em></h2>
+
+        <div class="install-grid">
+            <div class="install-steps reveal">
+                <div class="step">
+                    <div class="step-num">01</div>
+                    <div class="step-content">
+                        <h4>Install via Homebrew</h4>
+                        <p>The quickest path. Installs Sandokan and its Eigen dependency.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">02</div>
+                    <div class="step-content">
+                        <h4>Link in CMake</h4>
+                        <p>Use <span class="inline-code">find_package</span> and link the <span class="inline-code">sandokan::sandokan</span> target. That's it.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">03</div>
+                    <div class="step-content">
+                        <h4>Enable AMX (optional)</h4>
+                        <p>One CMake flag unlocks Apple Accelerate / AMX for a significant speed boost on Apple Silicon.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">04</div>
+                    <div class="step-content">
+                        <h4>Drop in the header</h4>
+                        <p><span class="inline-code">#include &lt;sandokan.h&gt;</span> and you have the full training API.</p>
+                    </div>
+                </div>
+                <a href="docs.html" class="btn-primary" style="margin-top:1rem;display:inline-block;text-align:center;">Full Documentation →</a>
+            </div>
+
+            <pre class="install-block reveal"><code><span class="cmt"># 1. Install</span>
+brew install sandokan
+
+<span class="cmt"># 2. Build your project</span>
+cmake -B build .
+cmake --build build -j
+
+<span class="cmt"># CMakeLists.txt</span>
+<span class="kw">find_package</span>(sandokan REQUIRED)
+<span class="kw">target_link_libraries</span>(your_target
+    PRIVATE sandokan::sandokan)
+
+<span class="cmt"># 3. Enable AMX (Apple Silicon)</span>
+<span class="kw">target_compile_definitions</span>(sandokan
+    INTERFACE EIGEN_USE_BLAS)
+<span class="kw">target_link_libraries</span>(sandokan
+    INTERFACE "-framework Accelerate")
+
+<span class="cmt"># 4. In your code</span>
+<span class="kw">#include</span> &lt;sandokan.h&gt;</code></pre>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-logo">Sandokan.</div>
+    <ul class="footer-links">
+        <li><a href="docs.html">Documentation</a></li>
+        <li><a href="#install">Install</a></li>
+        <li><a href="#performance">Benchmarks</a></li>
+        <li><a href="#">GitHub</a></li>
+    </ul>
+    <p class="footer-copy">C++17 · CMake ≥ 3.15 · Eigen 3 · Requires no Python runtime.</p>
+</footer>
+
+<script>
+/* ── NAV scroll ── */
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 40);
+});
+
+/* ── Scroll reveal ── */
+const reveals = document.querySelectorAll('.reveal');
+const ro = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); ro.unobserve(e.target); }});
+}, { threshold: 0.1 });
+reveals.forEach(el => ro.observe(el));
+
+/* ── Terminal animation ── */
+const body = document.getElementById('terminal-body');
+
+const sequence = [
+    { type: 'cmd',   text: 'brew install sandokan', delay: 600 },
+    { type: 'gap',   delay: 300 },
+    { type: 'out',   text: '==> Fetching sandokan', delay: 0 },
+    { type: 'out',   text: '==> Downloading https://formulae.brew.sh/api/sandokan-1.2.0-rc.tar.gz', delay: 80 },
+    { type: 'progress', delay: 0 },
+    { type: 'out',   text: '==> Installing dependencies: eigen', delay: 200 },
+    { type: 'out',   text: '==> Installing sandokan', delay: 400 },
+    { type: 'ok',    text: '✓  /opt/homebrew/Cellar/sandokan/1.2.0-rc (38 files, 2.4MB)', delay: 600 },
+    { type: 'gap',   delay: 200 },
+    { type: 'cmd',   text: 'sandokan --version', delay: 300 },
+    { type: 'gap',   delay: 200 },
+    { type: 'hi',    text: 'Sandokan 1.2.0-rc  •  C++17  •  AMX ready', delay: 0 },
+    { type: 'gap',   delay: 150 },
+    { type: 'cmd',   text: '', delay: 0, cursor: true },
+];
+
+async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function typeText(el, text, speed = 38) {
+    for (const ch of text) {
+        el.textContent += ch;
+        await sleep(speed + Math.random() * 20);
+    }
+}
+
+function makeLine(cls, text = '') {
+    const div = document.createElement('div');
+    div.className = 't-line';
+    if (cls === 'cmd') {
+        const prompt = document.createElement('span');
+        prompt.className = 't-prompt';
+        prompt.textContent = '❯';
+        div.appendChild(prompt);
+    }
+    const content = document.createElement('span');
+    content.className = cls === 'cmd' ? 't-cmd' :
+                        cls === 'ok'  ? 't-ok'  :
+                        cls === 'hi'  ? 't-hi'  : 't-out';
+    content.textContent = text;
+    div.appendChild(content);
+    return { div, content };
+}
+
+async function runTerminal() {
+    await sleep(1400);
+    for (const step of sequence) {
+        await sleep(step.delay || 0);
+
+        if (step.type === 'gap') { body.appendChild(document.createElement('br')); continue; }
+
+        if (step.type === 'progress') {
+            const { div, content } = makeLine('out', '');
+            body.appendChild(div);
+            const chars = ['▏','▎','▍','▌','▋','▊','▉','█'];
+            const total = 32;
+            for (let i = 0; i <= total; i++) {
+                const pct = Math.round((i / total) * 100);
+                const filled = Math.round((i / total) * 20);
+                const bar = chars[Math.floor((i / total) * 7)].repeat(filled) + '░'.repeat(20 - filled);
+                content.textContent = `   [${bar}] ${pct}%`;
+                await sleep(35);
+            }
+            continue;
+        }
+
+        if (step.cursor) {
+            const { div, content } = makeLine('cmd', '');
+            const cur = document.createElement('span');
+            cur.className = 'cursor';
+            div.appendChild(cur);
+            body.appendChild(div);
+            continue;
+        }
+
+        if (step.type === 'cmd') {
+            const { div, content } = makeLine('cmd', '');
+            body.appendChild(div);
+            await typeText(content, step.text, 42);
+            await sleep(120);
+            continue;
+        }
+
+        const { div } = makeLine(step.type, step.text);
+        body.appendChild(div);
+    }
+}
+
+runTerminal();
+</script>
+</body>
+</html>

@@ -70,11 +70,12 @@ interface Props {
   onNavigate: (id: SectionId) => void
   searchQuery: string
   onSearch: (q: string) => void
+  isOpen?: boolean
 }
 
-export default function Sidebar({ active, onNavigate, searchQuery, onSearch }: Props) {
+export default function Sidebar({ active, onNavigate, searchQuery, onSearch, isOpen }: Props) {
   return (
-    <nav className={styles.sidebar}>
+    <nav className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}>
       <div className={styles.searchBox}>
         <span className={styles.searchIcon}>⌕</span>
         <input

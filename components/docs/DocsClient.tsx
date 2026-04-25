@@ -37,6 +37,7 @@ export default function DocsClient() {
   const [search, setSearch] = useState('')
   const [tocItems, setTocItems] = useState<{ id: string; text: string }[]>([])
   const [tocActive, setTocActive] = useState('')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
 
   const buildTOC = useCallback(() => {
@@ -85,6 +86,7 @@ export default function DocsClient() {
 
   function navigate(id: SectionId) {
     setActive(id)
+    setSidebarOpen(false)
     const main = contentRef.current?.closest('[data-main]') as HTMLElement | null
     main?.scrollTo({ top: 0 })
   }
@@ -93,11 +95,24 @@ export default function DocsClient() {
 
   return (
     <>
+      {sidebarOpen && (
+        <div className={styles.overlay} onClick={() => setSidebarOpen(false)} />
+      )}
+
+      <button
+        className={styles.menuBtn}
+        onClick={() => setSidebarOpen(s => !s)}
+        aria-label="Toggle navigation"
+      >
+        {sidebarOpen ? '✕' : '☰'}
+      </button>
+
       <Sidebar
         active={active}
         onNavigate={navigate}
         searchQuery={search}
         onSearch={setSearch}
+        isOpen={sidebarOpen}
       />
 
       <div className={styles.main} data-main>

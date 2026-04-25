@@ -40,3 +40,13 @@
   color: #4a4742;
   width: 100%;
 }
+
+@media (max-width: 640px) {
+  .footer {
+    padding: 2rem 1.25rem;
+  }
+
+  .links {
+    gap: 1.25rem;
+  }
+}

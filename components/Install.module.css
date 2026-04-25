@@ -128,3 +128,14 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 640px) {
+  .section {
+    padding: 4rem 1.25rem;
+  }
+
+  .block {
+    font-size: 0.78rem;
+    padding: 1.25rem;
+  }
+}

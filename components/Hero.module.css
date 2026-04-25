@@ -131,3 +131,36 @@
   width: 100%;
   max-width: 660px;
 }
+
+@media (max-width: 640px) {
+  .hero {
+    padding: 5.5rem 1.25rem 3.5rem;
+  }
+
+  .h1 {
+    font-size: clamp(2.2rem, 10vw, 3rem);
+    margin-bottom: 1.25rem;
+  }
+
+  .sub {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .badges {
+    gap: 0.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .ctas {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-bottom: 3rem;
+  }
+
+  .btnPrimary,
+  .btnGhost {
+    text-align: center;
+  }
+}

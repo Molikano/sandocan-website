@@ -229,3 +229,18 @@
 }
 
 .list li::marker { color: var(--accent); }
+
+@media (max-width: 640px) {
+  .h1 {
+    font-size: 2rem;
+  }
+
+  .h2 {
+    font-size: 1.35rem;
+    margin: 2rem 0 0.75rem;
+  }
+
+  .pre code {
+    font-size: 0.78rem;
+  }
+}

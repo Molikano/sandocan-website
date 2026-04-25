@@ -14,8 +14,6 @@ const badges = [
 export default function Hero() {
   return (
     <section className={styles.hero}>
-      <p className={styles.eyebrow}>C++ Neural Network Engine</p>
-
       <h1 className={styles.h1}>
         Neural networks at <em>native</em> C++ speed.
       </h1>

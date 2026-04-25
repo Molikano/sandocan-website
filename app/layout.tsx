@@ -22,6 +22,9 @@ export const metadata: Metadata = {
   title: 'Sandokan — C++ Neural Network Training Engine',
   description:
     'No Python. No PyTorch dependency. Drop a single header and get a complete training pipeline — backed by a custom slab allocator and Apple AMX acceleration.',
+  icons: {
+    icon: '/logo.svg',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
